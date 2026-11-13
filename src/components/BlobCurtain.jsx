@@ -2,13 +2,13 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { gsap } from 'gsap';
 
 // Màn chuyển cảnh dùng chung cho lúc vào web và lúc chuyển tab:
-//  - "grain": nền đen, khối hữu cơ đầy hạt lớn dần ở giữa;
+//  - "grain": nền đen, viền khối hữu cơ lớn dần ở giữa (lòng khối để trống);
 //  - "hole": khối biến thành lỗ, nở ra để lộ trang;
 //  - "fill": khối đen nở ra từ giữa để che trang hiện tại (chỉ dùng khi chuyển tab).
 const BlobCurtain = forwardRef(function BlobCurtain(_, ref) {
   const wrap = useRef(null);
   const canvas = useRef(null);
-  const st = useRef({ phase: 'grain', p: 0, k: 0 });
+  const st = useRef({ phase: 'black', p: 0, k: 0 });
   const tl = useRef(null);
 
   useEffect(() => {
@@ -22,17 +22,6 @@ const BlobCurtain = forwardRef(function BlobCurtain(_, ref) {
     resize();
     window.addEventListener('resize', resize);
 
-    const tile = document.createElement('canvas');
-    tile.width = tile.height = 160;
-    const tctx = tile.getContext('2d');
-    const img = tctx.createImageData(160, 160);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = 40 + Math.random() * 170;
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-      img.data[i + 3] = Math.random() < 0.55 ? 255 : 0;
-    }
-    tctx.putImageData(img, 0, 0);
-    const grain = ctx.createPattern(tile, 'repeat');
 
     const shape = (t, r) => {
       const pts = [];
@@ -97,6 +86,7 @@ const BlobCurtain = forwardRef(function BlobCurtain(_, ref) {
 
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, W, H);
+      if (s.phase === 'black') return; // chờ trình duyệt tải xong mới vẽ khối
       const r = s.phase === 'hole' ? base + (full - base) * s.k : base;
       const pts = shape(t, r);
       if (s.phase === 'hole') {
@@ -104,14 +94,6 @@ const BlobCurtain = forwardRef(function BlobCurtain(_, ref) {
         path(pts, cx, cy);
         ctx.fill();
         ctx.globalCompositeOperation = 'source-over';
-      } else {
-        ctx.save();
-        path(pts, cx, cy);
-        ctx.clip();
-        ctx.globalAlpha = 0.55;
-        ctx.fillStyle = grain;
-        ctx.fillRect(0, 0, W, H);
-        ctx.restore();
       }
       rim(pts, cx, cy);
     };
@@ -129,16 +111,21 @@ const BlobCurtain = forwardRef(function BlobCurtain(_, ref) {
     gsap.set(wrap.current, { display: 'none' });
   };
 
-  // Mở ra: trang mới được gắn đúng lúc lỗ bắt đầu mở (onReveal),
-  // nên hiệu ứng chữ của trang chạy cùng lúc với lúc lộ ra, không bị trễ.
+  // Mở ra: gắn trang mới (onReveal) khi màn hình còn đen, tạm dừng 3 khung hình
+  // để trình duyệt vẽ xong trang mới, rồi mới mở lỗ. Nhờ vậy lỗ không bao giờ lộ trang cũ,
+  // và hiệu ứng chữ của trang mới vẫn chạy gần như cùng lúc với lúc lộ ra.
   const reveal = (timeline, onReveal) =>
     timeline
       .add(() => {
+        onReveal?.();
+        timeline.pause();
+        requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => timeline.resume())));
+      })
+      .add(() => {
         st.current.phase = 'hole';
         st.current.k = 0;
-        onReveal?.();
       })
-      .to(st.current, { k: 1, duration: 0.65, ease: 'power3.in' })
+      .to(st.current, { k: 1, duration: 0.6, ease: 'power2.in' })
       .add(hide);
 
   useImperativeHandle(ref, () => ({

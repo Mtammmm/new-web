@@ -189,25 +189,6 @@ button:hover .roll-line + .roll-line .roll-char {
     rgba(0, 0, 0, 0.3);
 }
 
-.grain {
-  position: fixed;
-  inset: -100%;
-  z-index: 90;
-  pointer-events: none;
-  opacity: 0.16;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain 0.9s steps(6) infinite;
-}
-
-@keyframes grain {
-  0% { transform: translate(0, 0); }
-  20% { transform: translate(-6%, 4%); }
-  40% { transform: translate(5%, -7%); }
-  60% { transform: translate(-3%, 8%); }
-  80% { transform: translate(7%, 2%); }
-  100% { transform: translate(0, 0); }
-}
-
 /* ============ Preloader ============ */
 .preloader {
   position: fixed;
@@ -249,6 +230,46 @@ button:hover .roll-line + .roll-line .roll-char {
 
 .nav > .nav-right {
   justify-self: end;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Biểu tượng sóng âm: 4 vạch nhảy khi bật, nằm im khi tắt */
+.sound-toggle .nav-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 9px;
+}
+
+.eq i {
+  width: 2px;
+  height: 2px;
+  background: currentColor;
+  transition: height 0.3s;
+}
+
+.eq.on i {
+  animation: eq 0.9s ease-in-out infinite alternate;
+}
+
+.eq.on i:nth-child(2) { animation-delay: -0.3s; }
+.eq.on i:nth-child(3) { animation-delay: -0.6s; }
+.eq.on i:nth-child(4) { animation-delay: -0.15s; }
+
+@keyframes eq {
+  from { height: 2px; }
+  to { height: 9px; }
 }
 
 .toggle-words {
@@ -726,6 +747,14 @@ button:hover .roll-line + .roll-line .roll-char {
     grid-template-columns: 1fr 1fr;
   }
 
+  .nav-right {
+    gap: 16px;
+  }
+
+  .sound-toggle .roll {
+    display: none;
+  }
+
   .corner:nth-child(2) {
     display: none;
   }
@@ -801,11 +830,12 @@ button:hover .roll-line + .roll-line .roll-char {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grain {
-    animation: none;
-  }
   .roll-char,
   .toggle-words > span {
     transition: none;
+  }
+  .eq.on i {
+    animation: none;
+    height: 6px;
   }
 }

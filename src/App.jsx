@@ -8,6 +8,8 @@ import SmoothScroll from './lib/SmoothScroll.jsx';
 import Silk from './components/reactbits/Silk.jsx';
 import Roll from './components/Roll.jsx';
 import BlobCurtain from './components/BlobCurtain.jsx';
+import { warmChrome } from './components/ChromeObject.jsx';
+import { installSound, sound } from './lib/sound.js';
 import Index from './pages/Index.jsx';
 import Work from './pages/Work.jsx';
 import About from './pages/About.jsx';
@@ -52,13 +54,31 @@ export default function App() {
 
   // Vào web: khối hạt + số đếm, rồi mở ra.
   useEffect(() => {
-    curtain.current.intro(() => setLoaded(true));
+    warmChrome(); // dựng sẵn vật thể 3D trong lúc màn hình còn đen
+    // Chỉ bắt đầu hiệu ứng khi trình duyệt đã chạy ổn định (3 khung hình liền < 25ms),
+    // để khối không bị khựng ngay nhịp đầu. Tối đa chờ 1.5s.
+    let raf = 0;
+    let good = 0;
+    let last = performance.now();
+    const t0 = last;
+    const wait = now => {
+      good = now - last < 25 ? good + 1 : 0;
+      last = now;
+      if (good >= 3 || now - t0 > 1500) curtain.current.intro(() => setLoaded(true));
+      else raf = requestAnimationFrame(wait);
+    };
+    raf = requestAnimationFrame(wait);
+    return () => cancelAnimationFrame(raf);
   }, []);
+
+  useEffect(() => installSound(), []);
 
   // Chuyển tab: cùng hiệu ứng khối, che trang cũ → đổi trang → mở ra.
   useEffect(() => {
     if (page === shown) return;
+    sound.whoosh();
     curtain.current.transition(() => {
+      sound.reveal();
       lenis?.scrollTo(0, { immediate: true });
       window.scrollTo(0, 0);
       setShown(page);
@@ -85,7 +105,7 @@ export default function App() {
           scale={0.7}
           wave={0.6}
           ripple={0.35}
-          noiseIntensity={0.6}
+          noiseIntensity={0}
           sheen={0.55}
           depth={0.7}
           glow={0.15}
@@ -102,7 +122,6 @@ export default function App() {
           clickRipple={false}
         />
       </div>
-      <div className="grain" aria-hidden="true" />
 
 
       <Nav open={menuOpen} onToggle={() => setMenuOpen(v => !v)} onGo={go} current={shown} ready={loaded} />
@@ -144,6 +163,16 @@ function Nav({ open, onToggle, onGo, current, ready }) {
     open ? tl.current.timeScale(1).play() : tl.current.timeScale(1.5).reverse();
   }, [open]);
 
+  // Âm mở/đóng menu (bỏ qua lần render đầu).
+  const firstMenu = useRef(true);
+  useEffect(() => {
+    if (firstMenu.current) return void (firstMenu.current = false);
+    sound.menu(open);
+  }, [open]);
+
+  const [soundOn, setSoundOn] = useState(sound.enabled);
+  useEffect(() => sound.subscribe(setSoundOn), []);
+
   useEffect(() => {
     const onKey = e => e.key === 'Escape' && open && onToggle();
     window.addEventListener('keydown', onKey);
@@ -157,7 +186,13 @@ function Nav({ open, onToggle, onGo, current, ready }) {
 
   return (
     <nav className="nav" ref={ref} aria-label="Main">
-      <button className="nav-item menu-toggle" aria-expanded={open} aria-controls="menu-panel" onClick={onToggle}>
+      <button
+        className="nav-item menu-toggle"
+        aria-expanded={open}
+        aria-controls="menu-panel"
+        onClick={onToggle}
+        data-silent
+      >
         <span className="nav-mask">
           <span className="nav-line">
             <span className={`toggle-words ${open ? 'is-open' : ''}`}>
@@ -176,13 +211,28 @@ function Nav({ open, onToggle, onGo, current, ready }) {
         </span>
       </a>
 
-      <a className="nav-item nav-right" href="#/contact" onClick={e => link('contact', e)}>
-        <span className="nav-mask">
-          <span className="nav-line">
-            <Roll>Contact</Roll>
+      <div className="nav-item nav-right">
+        <button className="sound-toggle" onClick={() => sound.toggle()} aria-pressed={soundOn} data-silent>
+          <span className="nav-mask">
+            <span className="nav-line">
+              <span className={`eq ${soundOn ? 'on' : ''}`} aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
+              <Roll>{soundOn ? 'Sound on' : 'Sound off'}</Roll>
+            </span>
           </span>
-        </span>
-      </a>
+        </button>
+        <a href="#/contact" onClick={e => link('contact', e)}>
+          <span className="nav-mask">
+            <span className="nav-line">
+              <Roll>Contact</Roll>
+            </span>
+          </span>
+        </a>
+      </div>
 
       <div className="menu-panel" id="menu-panel" inert={!open}>
         <ul className="menu-links">

@@ -4,6 +4,7 @@ import { SplitText } from 'gsap/SplitText';
 import { useGSAP } from '@gsap/react';
 import Roll from '../components/Roll.jsx';
 import { projects } from '../data/profile.js';
+import { sound } from '../lib/sound.js';
 
 const pad = n => String(n).padStart(2, '0');
 const GAP = 1.06; // khoảng cách tâm các thẻ, tính theo bề rộng thẻ
@@ -16,6 +17,12 @@ export default function Work() {
   const wheel = useRef({ acc: 0, last: 0 });
 
   const step = useCallback(dir => setIndex(i => gsap.utils.clamp(0, projects.length - 1, i + dir)), []);
+
+  const firstStep = useRef(true);
+  useEffect(() => {
+    if (firstStep.current) return void (firstStep.current = false);
+    sound.step(index);
+  }, [index]);
 
   useGSAP(
     () => {
