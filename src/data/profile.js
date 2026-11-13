@@ -46,6 +46,11 @@ export const projects = [
       'Graded High Distinction (80/100).',
       'Production mode refuses to start without a random JWT secret of 32+ characters; credentials stay out of the repo.'
     ],
+    images: [
+      { src: '/projects/csv-insight-1.jpg', caption: 'Data overview after analysing a sample CSV' },
+      { src: '/projects/csv-insight-2.jpg', caption: 'Landing page' },
+      { src: '/projects/csv-insight-3.jpg', caption: 'JWT sign-in for the cloud workspace' }
+    ],
     stack: ['Python', 'Flask', 'AWS Lambda', 'S3', 'ECS', 'DynamoDB', 'Docker', 'Pytest'],
     highlight: 'High Distinction · 80/100',
     repo: 'https://github.com/Mtammmm/CSV-Insight'
@@ -65,6 +70,10 @@ export const projects = [
       'Managed client state with Zustand and server data with TanStack Query.'
     ],
     impact: [],
+    images: [
+      { src: '/projects/caiec-agritrade-1.jpg', caption: 'Sign-in, backed by Supabase Auth' },
+      { src: '/projects/caiec-agritrade-2.jpg', caption: 'Account creation with password rules' }
+    ],
     stack: ['TypeScript', 'Next.js', 'React', 'Tailwind CSS', 'Supabase', 'Gemini AI', 'Bun'],
     repo: 'https://github.com/Mtammmm/CAIEC-AgriTrade'
   },
@@ -81,6 +90,10 @@ export const projects = [
       'Added Vietnamese-language output so summaries work for the club’s Vietnamese meetings.'
     ],
     impact: [],
+    images: [
+      { src: '/projects/meeting-summarizer-1.jpg', caption: 'Landing page of the club tool' },
+      { src: '/projects/meeting-summarizer-2.jpg', caption: 'Sign-in' }
+    ],
     stack: ['ChatGPT API', 'Whisper', 'WebSockets'],
     repo: 'https://github.com/rmit-nct/Meeting-Summarizer'
   },
@@ -144,7 +157,13 @@ export const projects = [
       'Wrote logistic regression by hand in NumPy: forward pass, binary cross-entropy loss, gradients and gradient descent, without calling .fit().',
       'Evaluated with accuracy, precision, recall and F1, and saved the model and training history to JSON for a separate prediction script.'
     ],
-    impact: [],
+    impact: [
+      'Held-out test set: 95.35% accuracy, 98.08% precision, 94.44% recall, 96.23% F1.'
+    ],
+    images: [
+      { src: '/projects/classifier-1.jpg', caption: 'Real training run: 900 epochs, test F1 96.23%' },
+      { src: '/projects/classifier-2.jpg', caption: 'Inference on a dataset sample' }
+    ],
     stack: ['Python', 'NumPy', 'scikit-learn'],
     repo: 'https://github.com/Mtammmm/chat-bot'
   }

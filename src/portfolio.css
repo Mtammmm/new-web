@@ -443,6 +443,38 @@ button:hover .roll-line + .roll-line .roll-char {
   padding: 28px 32px;
 }
 
+.cover.has-shot {
+  background: #0a0a0a;
+}
+
+/* Ảnh thật làm bìa: phủ tối nhẹ trên/dưới để chữ góc vẫn đọc được */
+.cover-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  pointer-events: none;
+}
+
+.cover.has-shot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 22%, transparent 70%, rgba(0, 0, 0, 0.7));
+  pointer-events: none;
+}
+
+.cover.has-shot > :not(img) {
+  position: relative;
+  z-index: 1;
+}
+
+.cover.has-shot .cover-title {
+  display: none;
+}
+
 .cover-head,
 .cover-foot {
   display: flex;
@@ -508,6 +540,23 @@ button:hover .roll-line + .roll-line .roll-char {
 
 .detail-summary {
   max-width: 30ch;
+}
+
+.detail-shots {
+  display: grid;
+  gap: 28px;
+}
+
+.detail-shots figure {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.detail-shots img {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--line);
 }
 
 .detail-block {

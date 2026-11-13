@@ -145,29 +145,39 @@ export default function Work() {
   );
 }
 
-/* "Ảnh bìa" dựng bằng code: nền hạt tối + sơ đồ kiến trúc của dự án */
+/* Ảnh bìa: ảnh chụp thật của dự án nếu có; nếu không thì bìa dựng bằng code (sơ đồ kiến trúc) */
 function Cover({ project: p, n }) {
+  const shot = p.images?.[0];
   const tone = 18 + ((n * 37) % 22);
   return (
     <div
-      className="cover"
-      style={{
-        background: `radial-gradient(90% 120% at ${30 + ((n * 23) % 40)}% 20%, hsl(0 0% ${tone + 16}%), transparent 60%), radial-gradient(120% 120% at 80% 100%, hsl(0 0% ${tone}%), #050505 70%)`
-      }}
+      className={`cover ${shot ? 'has-shot' : ''}`}
+      style={
+        shot
+          ? undefined
+          : {
+              background: `radial-gradient(90% 120% at ${30 + ((n * 23) % 40)}% 20%, hsl(0 0% ${tone + 16}%), transparent 60%), radial-gradient(120% 120% at 80% 100%, hsl(0 0% ${tone}%), #050505 70%)`
+            }
+      }
     >
+      {shot && <img className="cover-shot" src={shot.src} alt="" draggable="false" />}
       <div className="cover-head small">
         <span>{pad(n)}</span>
         <span>{p.year}</span>
       </div>
       <p className="cover-title large">{p.title}</p>
-      <div className="cover-flow small" aria-hidden="true">
-        {(p.arch || p.stack).map((s, j) => (
-          <Fragment key={s}>
-            {j > 0 && <i />}
-            <span>{s}</span>
-          </Fragment>
-        ))}
-      </div>
+      {shot ? (
+        <span />
+      ) : (
+        <div className="cover-flow small" aria-hidden="true">
+          {(p.arch || p.stack).map((s, j) => (
+            <Fragment key={s}>
+              {j > 0 && <i />}
+              <span>{s}</span>
+            </Fragment>
+          ))}
+        </div>
+      )}
       <div className="cover-foot small">
         <span>{p.role}</span>
         {p.highlight && <span>{p.highlight}</span>}
@@ -226,6 +236,17 @@ function Detail({ project: p, n, onClose }) {
 
         <div className="detail-main">
           <p className="detail-summary large">{p.summary}</p>
+
+          {p.images?.length > 0 && (
+            <section className="detail-shots">
+              {p.images.map(img => (
+                <figure key={img.src}>
+                  <img src={img.src} alt={`${p.title}: ${img.caption}`} loading="lazy" />
+                  <figcaption className="small dim">{img.caption}</figcaption>
+                </figure>
+              ))}
+            </section>
+          )}
 
           <section className="detail-block">
             <p className="small dim">What I did</p>
