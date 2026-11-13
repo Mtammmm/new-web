@@ -565,10 +565,10 @@ button:hover .roll-line + .roll-line .roll-char {
 .about-mark {
   position: absolute;
   left: 50%;
-  top: 92px;
-  width: 140px;
-  height: 140px;
-  translate: -50% 0;
+  top: 50%;
+  width: 220px;
+  height: 220px;
+  translate: -50% -50%;
   pointer-events: none;
 }
 
@@ -777,6 +777,11 @@ button:hover .roll-line + .roll-line .roll-char {
 
   .diamond {
     font-size: 7px;
+  }
+
+  .about-mark {
+    width: 110px;
+    height: 110px;
   }
 
   .lists,
