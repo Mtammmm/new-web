@@ -8,6 +8,9 @@ import { sound } from '../lib/sound.js';
 
 const pad = n => String(n).padStart(2, '0');
 const GAP = 1.06; // khoảng cách tâm các thẻ, tính theo bề rộng thẻ
+// Ảnh chụp thật của dự án (public/projects/*.jpg). Tạm tắt; đổi thành true để hiện lại
+// ảnh bìa thẻ và ảnh trong trang chi tiết.
+const SHOW_SHOTS = false;
 
 export default function Work() {
   const ref = useRef(null);
@@ -147,7 +150,7 @@ export default function Work() {
 
 /* Ảnh bìa: ảnh chụp thật của dự án nếu có; nếu không thì bìa dựng bằng code (sơ đồ kiến trúc) */
 function Cover({ project: p, n }) {
-  const shot = p.images?.[0];
+  const shot = SHOW_SHOTS ? p.images?.[0] : null;
   const tone = 18 + ((n * 37) % 22);
   return (
     <div
@@ -237,7 +240,7 @@ function Detail({ project: p, n, onClose }) {
         <div className="detail-main">
           <p className="detail-summary large">{p.summary}</p>
 
-          {p.images?.length > 0 && (
+          {SHOW_SHOTS && p.images?.length > 0 && (
             <section className="detail-shots">
               {p.images.map(img => (
                 <figure key={img.src}>

@@ -120,6 +120,16 @@ export default function App() {
           afterflow={2.5}
           dragDecay={1.2}
           clickRipple={false}
+          interaction="fluid"
+          fluidResolution={0.25}
+          brushSize={1}
+          brushStrength={1}
+          distortion={1}
+          fluidDecay={0.97}
+          fluidTrail={0.99}
+          stopDecay={0.9}
+          grainAmount={0.22}
+          grainFps={24}
         />
       </div>
 

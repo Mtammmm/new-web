@@ -138,25 +138,42 @@ export default function ChromeObject({ className = '' }) {
     const tilt = { x: 0, y: 0 };
     const MAX_TILT_X = 0.12;
     const MAX_TILT_Y = 0.2;
+    // Hằng thời gian của độ nghiêng (giây). 0.47s ≈ hệ số 0.035/khung cũ ở 60Hz,
+    // nhưng giờ không phụ thuộc tần số quét (60/120/144Hz đều như nhau).
+    const SMOOTHING = 0.47;
     const onMove = e => {
+      if (e.pointerType === 'touch') return;
       pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
       pointer.y = -((e.clientY / window.innerHeight) * 2 - 1);
     };
+    // Con trỏ rời cửa sổ: đưa mục tiêu về giữa.
+    const onOut = e => {
+      if (!e.relatedTarget) {
+        pointer.x = 0;
+        pointer.y = 0;
+      }
+    };
     window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerout', onOut);
 
     let visible = true;
     const io = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting));
     io.observe(el);
 
     const t0 = performance.now();
+    let lastT = t0;
     let raf = 0;
     const tick = () => {
       raf = requestAnimationFrame(tick);
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - lastT) / 1000);
+      lastT = now;
       if (!visible || document.hidden || engine.owner !== token) return;
-      const t = (performance.now() - t0) / 1000;
+      const t = (now - t0) / 1000;
       const idle = reduce ? 0 : 1;
-      tilt.x += (-pointer.y * MAX_TILT_X - tilt.x) * 0.035;
-      tilt.y += (pointer.x * MAX_TILT_Y - tilt.y) * 0.035;
+      const k = 1 - Math.exp(-dt / SMOOTHING);
+      tilt.x += (-pointer.y * MAX_TILT_X - tilt.x) * k;
+      tilt.y += (pointer.x * MAX_TILT_Y - tilt.y) * k;
       pivot.rotation.x = tilt.x;
       pivot.rotation.y = tilt.y;
       mesh.rotation.y = Math.sin(t * 0.18) * 0.25 * idle + intro.spin;
@@ -171,6 +188,7 @@ export default function ChromeObject({ className = '' }) {
       io.disconnect();
       gsap.killTweensOf(intro);
       window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerout', onOut);
       if (renderer.domElement.parentNode === el) el.removeChild(renderer.domElement);
       if (engine.owner === token) engine.owner = null;
     };
