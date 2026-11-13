@@ -273,29 +273,6 @@ button:hover .roll-line + .roll-line .roll-char {
   opacity: 1;
 }
 
-/* Trạng thái "đang tìm việc": chấm xanh nhấp nháy */
-.status .nav-line {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-  animation: pulse 2.4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.35;
-    box-shadow: 0 0 2px var(--accent);
-  }
-}
-
 /* ============ Page + curtain ============ */
 .page {
   position: relative;
@@ -764,7 +741,6 @@ button:hover .roll-line + .roll-line .roll-char {
   }
 
   .nav > .nav-center,
-  .nav .status,
   .nav-num {
     display: none;
   }
@@ -863,8 +839,5 @@ button:hover .roll-line + .roll-line .roll-char {
 @media (prefers-reduced-motion: reduce) {
   .roll-char {
     transition: none;
-  }
-  .status-dot {
-    animation: none;
   }
 }

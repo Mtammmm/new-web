@@ -186,14 +186,6 @@ function Nav({ onGo, current, ready }) {
       </a>
 
       <div className="nav-item nav-right">
-        <span className="status">
-          <span className="nav-mask">
-            <span className="nav-line">
-              <i className="status-dot" aria-hidden="true" />
-              Available 2026
-            </span>
-          </span>
-        </span>
         <a href={profile.resume} target="_blank" rel="noreferrer">
           <span className="nav-mask">
             <span className="nav-line">
