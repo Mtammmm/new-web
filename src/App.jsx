@@ -36,12 +36,10 @@ export default function App() {
   const [page, setPage] = useState(fromHash);
   const [shown, setShown] = useState(page);
   const [loaded, setLoaded] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const curtain = useRef(null);
 
   // Điều hướng: rèm che xuống, đổi trang, rèm kéo lên.
   const go = key => {
-    setMenuOpen(false);
     if (key === shown) return;
     window.location.hash = `/${key}`;
   };
@@ -87,10 +85,10 @@ export default function App() {
 
   useEffect(() => {
     const scrolls = shown === 'about' || shown === 'contact';
-    document.documentElement.classList.toggle('lock', !scrolls || menuOpen);
-    if (menuOpen || !scrolls) lenis?.stop();
+    document.documentElement.classList.toggle('lock', !scrolls);
+    if (!scrolls) lenis?.stop();
     else lenis?.start();
-  }, [shown, page, menuOpen, lenis]);
+  }, [shown, page, lenis]);
 
   const Page = PAGES[shown];
 
@@ -134,7 +132,7 @@ export default function App() {
       </div>
 
 
-      <Nav open={menuOpen} onToggle={() => setMenuOpen(v => !v)} onGo={go} current={shown} ready={loaded} />
+      <Nav onGo={go} current={shown} ready={loaded} />
 
       <main className={`page page-${shown}`} key={shown}>
         {loaded && <Page onGo={go} />}
@@ -145,46 +143,17 @@ export default function App() {
   );
 }
 
-/* ---------- Nav + menu (ô trắng nhỏ góc trên trái) ---------- */
-function Nav({ open, onToggle, onGo, current, ready }) {
+/* ---------- Nav: link đánh số bên trái, tên ở giữa, trạng thái + CV bên phải ---------- */
+function Nav({ onGo, current, ready }) {
   const ref = useRef(null);
-  const tl = useRef(null);
 
   useGSAP(
     () => {
       if (!ready) return;
       gsap.fromTo('.nav .nav-line', { yPercent: 100 }, { yPercent: 0, duration: 0.9, stagger: 0.06, ease: 'expo.out' });
-
-      tl.current = gsap
-        .timeline({ paused: true })
-        .set('.menu-panel', { display: 'flex' })
-        .fromTo(
-          '.menu-panel',
-          { clipPath: 'inset(0% 100% 100% 0% round 6px)' },
-          { clipPath: 'inset(0% 0% 0% 0% round 6px)', duration: 0.75, ease: 'expo.inOut' }
-        )
-        .fromTo('.menu-line', { yPercent: 100 }, { yPercent: 0, stagger: 0.05, duration: 0.7, ease: 'expo.out' }, '-=0.3');
     },
     { scope: ref, dependencies: [ready] }
   );
-
-  useEffect(() => {
-    if (!tl.current) return;
-    open ? tl.current.timeScale(1).play() : tl.current.timeScale(1.5).reverse();
-  }, [open]);
-
-  // Âm mở/đóng menu (bỏ qua lần render đầu).
-  const firstMenu = useRef(true);
-  useEffect(() => {
-    if (firstMenu.current) return void (firstMenu.current = false);
-    sound.menu(open);
-  }, [open]);
-
-  useEffect(() => {
-    const onKey = e => e.key === 'Escape' && open && onToggle();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onToggle]);
 
   const link = (key, e) => {
     e.preventDefault();
@@ -193,22 +162,20 @@ function Nav({ open, onToggle, onGo, current, ready }) {
 
   return (
     <nav className="nav" ref={ref} aria-label="Main">
-      <button
-        className="nav-item menu-toggle"
-        aria-expanded={open}
-        aria-controls="menu-panel"
-        onClick={onToggle}
-        data-silent
-      >
-        <span className="nav-mask">
-          <span className="nav-line">
-            <span className={`toggle-words ${open ? 'is-open' : ''}`}>
-              <span>Menu</span>
-              <span aria-hidden="true">Close</span>
-            </span>
-          </span>
-        </span>
-      </button>
+      <ul className="nav-item nav-links">
+        {MENU.map(([key, label], i) => (
+          <li key={key}>
+            <a href={`#/${key}`} aria-current={current === key ? 'page' : undefined} onClick={e => link(key, e)}>
+              <span className="nav-mask">
+                <span className="nav-line">
+                  <span className="nav-num">0{i + 1}</span>
+                  <Roll>{label}</Roll>
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
 
       <a className="nav-item nav-center" href="#/index" onClick={e => link('index', e)}>
         <span className="nav-mask">
@@ -219,34 +186,21 @@ function Nav({ open, onToggle, onGo, current, ready }) {
       </a>
 
       <div className="nav-item nav-right">
-        <a href="#/contact" onClick={e => link('contact', e)}>
+        <span className="status">
           <span className="nav-mask">
             <span className="nav-line">
-              <Roll>Contact</Roll>
+              <i className="status-dot" aria-hidden="true" />
+              Available 2026
+            </span>
+          </span>
+        </span>
+        <a href={profile.resume} target="_blank" rel="noreferrer">
+          <span className="nav-mask">
+            <span className="nav-line">
+              <Roll>Resume ↗</Roll>
             </span>
           </span>
         </a>
-      </div>
-
-      <div className="menu-panel" id="menu-panel" inert={!open}>
-        <ul className="menu-links">
-          {MENU.map(([key, label]) => (
-            <li key={key}>
-              <a
-                className="menu-link"
-                href={`#/${key}`}
-                aria-current={current === key ? 'page' : undefined}
-                onClick={e => link(key, e)}
-              >
-                <span className="menu-line-mask">
-                  <span className="menu-line">
-                    <Roll>{label}</Roll>
-                  </span>
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
       </div>
     </nav>
   );

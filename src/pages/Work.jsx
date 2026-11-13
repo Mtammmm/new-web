@@ -49,7 +49,7 @@ export default function Work() {
   useGSAP(
     () => {
       gsap.from('.card', { yPercent: 12, opacity: 0, duration: 1.4, ease: 'expo.out', stagger: 0.05 });
-      gsap.fromTo('.corner .nav-line', { yPercent: 100 }, { yPercent: 0, duration: 0.9, stagger: 0.06, ease: 'expo.out', delay: 0.2 });
+      gsap.fromTo('.corner:not(.work-label) .nav-line', { yPercent: 100 }, { yPercent: 0, duration: 0.9, stagger: 0.06, ease: 'expo.out', delay: 0.2 });
     },
     { scope: ref }
   );
@@ -99,13 +99,6 @@ export default function Work() {
     <section className="work" ref={ref}>
       <h1 className="sr-only">Work</h1>
 
-      {/* Mép trên/dưới cong lõm, như màn hình cong */}
-      <svg width="0" height="0" aria-hidden="true" style={{ position: 'absolute' }}>
-        <clipPath id="curve" clipPathUnits="objectBoundingBox">
-          <path d="M0.012,0 Q0.5,0.045 0.988,0 Q1,0 1,0.018 L1,0.982 Q1,1 0.988,1 Q0.5,0.955 0.012,1 Q0,1 0,0.982 L0,0.018 Q0,0 0.012,0 Z" />
-        </clipPath>
-      </svg>
-
       <div className="stage">
         {projects.map((proj, i) => (
           <button
@@ -137,7 +130,7 @@ export default function Work() {
         <p className="corner">
           <span className="nav-mask">
             <span className="nav-line">
-              {pad(index + 1)} / {pad(projects.length)}
+              [ {pad(index + 1)} / {pad(projects.length)} ]
             </span>
           </span>
         </p>
@@ -165,7 +158,9 @@ function Cover({ project: p, n }) {
     >
       {shot && <img className="cover-shot" src={shot.src} alt="" draggable="false" />}
       <div className="cover-head small">
-        <span>{pad(n)}</span>
+        <span className="cover-path">
+          ~/work/{pad(n)}-<b>{p.slug}</b>
+        </span>
         <span>{p.year}</span>
       </div>
       <p className="cover-title large">{p.title}</p>

@@ -214,6 +214,9 @@ export default function About() {
         <p>
           <span className="dim">{profile.name} © {new Date().getFullYear()}</span>
           <span>All rights reserved</span>
+          <a className="dim" href="https://zenobasi.com" target="_blank" rel="noreferrer">
+            Design inspired by zenobasi.com
+          </a>
         </p>
         <p>
           <span className="dim">Say hello</span>

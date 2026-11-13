@@ -79,7 +79,6 @@ export const sound = {
     blip(420, { peak: 0.09, release: 0.09, type: 'triangle', to: 260 });
     tickNoise(2600, 0.05, 0.04);
   },
-  menu: open => blip(open ? 520 : 700, { peak: 0.06, release: 0.18, to: open ? 780 : 470 }),
   step: i => blip(620 + i * 55, { peak: 0.045, release: 0.07, type: 'triangle' }),
 
   // Chuyển tab: tiếng "vút" khi khối che màn hình...
