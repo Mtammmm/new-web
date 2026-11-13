@@ -180,9 +180,6 @@ function Nav({ open, onToggle, onGo, current, ready }) {
     sound.menu(open);
   }, [open]);
 
-  const [soundOn, setSoundOn] = useState(sound.enabled);
-  useEffect(() => sound.subscribe(setSoundOn), []);
-
   useEffect(() => {
     const onKey = e => e.key === 'Escape' && open && onToggle();
     window.addEventListener('keydown', onKey);
@@ -222,19 +219,6 @@ function Nav({ open, onToggle, onGo, current, ready }) {
       </a>
 
       <div className="nav-item nav-right">
-        <button className="sound-toggle" onClick={() => sound.toggle()} aria-pressed={soundOn} data-silent>
-          <span className="nav-mask">
-            <span className="nav-line">
-              <span className={`eq ${soundOn ? 'on' : ''}`} aria-hidden="true">
-                <i />
-                <i />
-                <i />
-                <i />
-              </span>
-              <Roll>{soundOn ? 'Sound on' : 'Sound off'}</Roll>
-            </span>
-          </span>
-        </button>
         <a href="#/contact" onClick={e => link('contact', e)}>
           <span className="nav-mask">
             <span className="nav-line">

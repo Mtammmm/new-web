@@ -3,13 +3,10 @@
 // Trình duyệt chỉ cho phát sau thao tác đầu tiên của người dùng (bấm / gõ phím),
 // nên AudioContext được tạo ở lần tương tác đầu.
 
-const KEY = 'mt-sound';
 let ctx = null;
 let master = null;
-let enabled = localStorage.getItem(KEY) !== 'off';
-const listeners = new Set();
 
-const ready = () => ctx && ctx.state === 'running' && enabled;
+const ready = () => ctx && ctx.state === 'running';
 
 function init() {
   if (ctx) {
@@ -20,7 +17,7 @@ function init() {
   if (!AC) return;
   ctx = new AC();
   master = ctx.createGain();
-  master.gain.value = enabled ? 0.7 : 0;
+  master.gain.value = 0.7;
   // Nén nhẹ để các âm chồng nhau không bị vỡ tiếng.
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -18;
@@ -77,26 +74,6 @@ function tickNoise(freq, peak, release) {
 }
 
 export const sound = {
-  get enabled() {
-    return enabled;
-  },
-  subscribe(fn) {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-  },
-  toggle() {
-    enabled = !enabled;
-    localStorage.setItem(KEY, enabled ? 'on' : 'off');
-    init();
-    if (ctx) {
-      const t = ctx.currentTime;
-      master.gain.cancelScheduledValues(t);
-      master.gain.setTargetAtTime(enabled ? 0.7 : 0, t, 0.08);
-    }
-    if (enabled) setTimeout(() => blip(880, { peak: 0.05, release: 0.12, to: 1320 }), 30);
-    listeners.forEach(fn => fn(enabled));
-  },
-
   hover: () => tickNoise(5200, 0.03, 0.025),
   click: () => {
     blip(420, { peak: 0.09, release: 0.09, type: 'triangle', to: 260 });
