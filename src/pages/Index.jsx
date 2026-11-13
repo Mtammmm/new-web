@@ -29,12 +29,12 @@ export default function Index() {
         </p>
         <p className="corner dim">
           <span className="nav-mask">
-            <span className="nav-line">10.77° N — 106.70° E</span>
+            <span className="nav-line">RMIT Vietnam — IT</span>
           </span>
         </p>
         <p className="corner">
           <span className="nav-mask">
-            <span className="nav-line">RMIT Vietnam — IT</span>
+            <span className="nav-line">Open to internships 2026</span>
           </span>
         </p>
       </footer>

@@ -434,6 +434,12 @@ button:hover .roll-line + .roll-line .roll-char {
   justify-content: space-between;
 }
 
+/* Dòng cuối luôn nằm ở đáy thẻ, kể cả khi sơ đồ bị ẩn trên điện thoại */
+.cover-foot {
+  grid-row: 4;
+  align-self: end;
+}
+
 /* Thanh trên cùng của thẻ: đường dẫn dự án như một thư mục */
 .cover-head {
   margin: 0 -32px 1.2rem;
