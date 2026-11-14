@@ -80,6 +80,8 @@ export const sound = {
     tickNoise(2600, 0.05, 0.04);
   },
   step: i => blip(620 + i * 55, { peak: 0.045, release: 0.07, type: 'triangle' }),
+  // Tiếng "tích" rất ngắn khi con trỏ trong menu chuyển sang mục khác.
+  tick: () => blip(1480, { peak: 0.025, release: 0.03, type: 'triangle' }),
 
   // Chuyển tab: tiếng "vút" khi khối che màn hình...
   whoosh() {
@@ -107,6 +109,7 @@ export const sound = {
 };
 
 // Mở khoá âm thanh ở thao tác đầu tiên; gắn tiếng hover/click cho mọi link, nút.
+// data-silent: bỏ tiếng click mặc định; data-quiet: bỏ tiếng hover mặc định (phần tử tự phát âm riêng).
 export function installSound() {
   const unlock = () => init();
   window.addEventListener('pointerdown', unlock, { capture: true });
@@ -117,7 +120,7 @@ export function installSound() {
     const el = e.target.closest?.('a, button');
     if (el === lastHover) return;
     lastHover = el;
-    if (el) sound.hover();
+    if (el && !el.dataset.quiet) sound.hover();
   };
   const click = e => {
     const el = e.target.closest?.('a, button');
