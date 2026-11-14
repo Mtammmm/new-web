@@ -245,8 +245,8 @@ export const statements = [
 // Hai cột chữ lặp ở hai bên khung.
 export const frameWords = ['Backend engineering', 'Cloud computing'];
 
-// Dòng chữ trên dải ảnh chân dung.
-export const bandLines = ['Studying at RMIT since 2025', 'Backend / Cloud / Applied AI'];
+// Chữ đỏ cỡ lớn nằm sau người trên dải ảnh chân dung (trang About), mỗi phần tử một dòng.
+export const major = ['Information', 'Technology'];
 
 export const scope = [
   'Java / Spring Boot',

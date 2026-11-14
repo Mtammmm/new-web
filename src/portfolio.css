@@ -622,24 +622,65 @@ button:hover .roll-line + .roll-line .roll-char {
   background: #0d0d0d;
 }
 
-.band img {
+.band-stack {
   position: absolute;
   inset: -6%;
   width: 112%;
   height: 112%;
-  object-fit: cover;
-  object-position: 50% 18%;
-  filter: blur(30px) grayscale(1) brightness(0.5) contrast(1.15);
 }
 
-.band-text {
+/* Ảnh gốc và ảnh người tách nền dùng đúng cùng CSS để trùng khít từng pixel */
+.band-photo {
   position: absolute;
-  left: 50%;
-  top: 20%;
-  translate: -50% 0;
-  display: grid;
-  justify-items: center;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  filter: grayscale(1) brightness(0.62) contrast(1.15);
+}
+
+/* Chữ đỏ nằm giữa ảnh gốc và người. top tính theo .band-stack (cao 112%, lệch -6%):
+   (14% + 6%) / 1.12 ≈ 17.86% → mép trên ở khoảng 14% chiều cao .band. */
+.band-major {
+  position: absolute;
+  top: 17.86%;
+  left: 0;
+  right: 0;
+  margin: 0;
+  color: #e0261b;
+  font-family: var(--font);
+  /* Đo bằng trình duyệt: 13.4vw cho "TECHNOLOGY" rộng ~92% bề ngang (15vw đã tràn ~103%) */
+  font-size: 13.4vw;
+  font-weight: 600;
+  line-height: 0.82;
+  letter-spacing: -0.04em;
   text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.band-line {
+  display: block;
+  overflow: clip;
+  padding: 0.06em 0;
+  margin: -0.06em 0;
+}
+
+.band-line > span {
+  display: block;
+}
+
+/* Chưa tải được (hoặc lỗi) ảnh tách nền: ẩn chữ đỏ và lớp người, dải ảnh như cũ */
+.band-major,
+.band-cutout {
+  visibility: hidden;
+}
+
+.band.has-cutout .band-major,
+.band.has-cutout .band-cutout {
+  visibility: visible;
 }
 
 /* Phần thân About: một cột dưới 1000px, ba cột (trái / giữa ghim, phải cuộn) từ 1000px */
@@ -971,6 +1012,11 @@ button:hover .roll-line + .roll-line .roll-char {
   .about-mark {
     width: 110px;
     height: 110px;
+  }
+
+  /* (18% + 6%) / 1.12 ≈ 21.43% → mép trên ở khoảng 18% chiều cao .band */
+  .band-major {
+    top: 21.43%;
   }
 
   .detail-grid {

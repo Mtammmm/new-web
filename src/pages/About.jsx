@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { Flip } from 'gsap/Flip';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -10,7 +10,7 @@ import Roll from '../components/Roll.jsx';
 import {
   statements,
   frameWords,
-  bandLines,
+  major,
   scope,
   bio,
   experience,
@@ -43,6 +43,13 @@ export default function About({ onGo }) {
   const flipState = useRef(null);
   const trigger = useRef(null);
   const reduce = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // Ảnh người đã tách nền: chỉ hiện chữ đỏ khi ảnh này tải được, để chữ không đè lên mặt.
+  const [cutout, setCutout] = useState('loading');
+  const cutoutImg = useRef(null);
+  useEffect(() => {
+    const img = cutoutImg.current;
+    if (img?.complete) setCutout(img.naturalWidth > 0 ? 'ok' : 'error');
+  }, []);
 
   // Đổi ảnh đang hiện; ghi lại vị trí các ảnh thu nhỏ trước khi React dời chúng sang nhóm khác.
   const show = useCallback(i => {
@@ -68,18 +75,32 @@ export default function About({ onGo }) {
         scrollTrigger: { trigger: '.about-intro', start: 'top top', end: 'bottom top', scrub: true }
       });
 
-      // Dải chân dung: ảnh phóng to dần khi cuộn qua.
-      // Dải chân dung: ảnh mờ nhoè khi vừa vào, nét dần khi cuộn tới giữa, kèm phóng nhẹ.
+      // Dải chân dung: cả khung ba lớp (ảnh, chữ đỏ, người tách nền) mờ nhoè khi vừa vào,
+      // nét dần khi cuộn tới giữa, kèm phóng nhẹ; áp lên khung để ba lớp luôn cùng nhịp.
       gsap.fromTo(
-        '.band img',
-        { scale: 1.18, filter: 'blur(30px) grayscale(1) brightness(0.5) contrast(1.15)' },
+        '.band-stack',
+        { scale: 1.18, filter: 'blur(30px)' },
         {
           scale: 1,
-          filter: 'blur(0px) grayscale(1) brightness(0.62) contrast(1.15)',
+          filter: 'blur(0px)',
           ease: 'none',
           scrollTrigger: { trigger: '.band', start: 'top bottom', end: 'center center', scrub: true }
         }
       );
+
+      // Chữ đỏ: từng dòng trồi lên khi dải ảnh tới 60% khung nhìn; parallax nhẹ, chậm hơn ảnh.
+      if (!reduce.current) {
+        gsap.fromTo(
+          '.band-line > span',
+          { yPercent: 105 },
+          { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: '.band', start: 'top 60%' } }
+        );
+        gsap.fromTo(
+          '.band-major',
+          { yPercent: -10 },
+          { yPercent: 10, ease: 'none', scrollTrigger: { trigger: '.band', start: 'top bottom', end: 'bottom top', scrub: true } }
+        );
+      }
 
       // Cột nội dung: từng mục trồi lên từ mặt nạ khi vào khung nhìn.
       gsap.utils.toArray('.about-section, .about-end').forEach(sec =>
@@ -211,13 +232,26 @@ export default function About({ onGo }) {
         </div>
       </div>
 
-      <div className="band">
-        <img src="/portrait.jpg" alt={`Portrait of ${profile.name}`} />
-        <p className="band-text small">
-          {bandLines.map(l => (
-            <span key={l}>{l}</span>
-          ))}
-        </p>
+      <div className={`band ${cutout === 'ok' ? 'has-cutout' : ''}`}>
+        <div className="band-stack">
+          <img className="band-photo" src="/portrait.jpg" alt={`Portrait of ${profile.name}`} />
+          <h2 className="band-major" aria-label={major.join(' ')}>
+            {major.map(w => (
+              <span className="band-line" key={w} aria-hidden="true">
+                <span>{w}</span>
+              </span>
+            ))}
+          </h2>
+          <img
+            ref={cutoutImg}
+            className="band-photo band-cutout"
+            src="/portrait-cutout.png"
+            alt=""
+            aria-hidden="true"
+            onLoad={() => setCutout('ok')}
+            onError={() => setCutout('error')}
+          />
+        </div>
       </div>
 
       <div className="about-body">

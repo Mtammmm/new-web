@@ -111,7 +111,9 @@ function Detail({ project: p, n, onClose }) {
   );
 
   return (
-    <div className="detail" ref={ref} role="dialog" aria-modal="true" aria-label={p.title}>
+    // data-lenis-prevent: trang Work đang stop() Lenis, và Lenis khi dừng sẽ chặn mọi cú cuộn;
+    // thuộc tính này cho khung chi tiết tự cuộn bằng thanh cuộn của nó.
+    <div className="detail" ref={ref} role="dialog" aria-modal="true" aria-label={p.title} data-lenis-prevent>
       <div className="detail-grid">
         <div className="col small detail-meta">
           <Row dim>Project</Row>
