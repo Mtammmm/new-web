@@ -16,6 +16,7 @@ export const profile = {
     ['next', 'NAWA scholarship exchange, University of Wrocław, 2027'],
     ['status', 'Open to internships']
   ],
+  availability: 'Open to internships 2026',
   email: 'viktor.dangg@gmail.com',
   resume: '/Dang_Minh_Tam_CV.pdf',
   links: {
@@ -24,6 +25,14 @@ export const profile = {
     facebook: 'https://www.facebook.com/angtam.949521',
     instagram: 'https://www.instagram.com/saxaxa_/'
   }
+};
+
+// Tên hiển thị của các liên kết trong profile.links.
+export const linkLabels = {
+  github: 'GitHub',
+  linkedin: 'LinkedIn',
+  facebook: 'Facebook',
+  instagram: 'Instagram'
 };
 
 // arch: các bước của hệ thống, vẽ thành sơ đồ luồng. highlight: kết quả nổi bật (nếu có).
@@ -258,8 +267,27 @@ export const scope = [
 export const bio =
   'IT student at RMIT University Vietnam with a Cloud Computing minor. Hands-on backend experience in Java/SQL and Node.js/Express, practical work integrating LLM APIs, and a track record of leading student organisations. Looking for internships where backend and AI meet real products, FinTech especially.';
 
-// Ảnh hoạt động, hiển thị ở trang About.
-export const moments = [
+// Học vấn, hiển thị ở trang About: tên bên trái, năm bên phải, detail là dòng phụ (tuỳ chọn).
+export const education = [
+  {
+    title: 'Bachelor of Information Technology, RMIT University Vietnam',
+    detail: 'Minor in Cloud Computing · GPA 3.0',
+    year: '2025 — 2028'
+  },
+  {
+    title: 'NAWA scholarship exchange, University of Wrocław, Poland',
+    year: '2027'
+  }
+];
+
+// Ảnh ở cột giữa trang About, đổi theo tiến độ cuộn. Thêm ảnh: chỉ cần thêm một phần tử.
+export const aboutPhotos = [
+  {
+    src: '/about-ferry.jpg',
+    alt: `${profile.name} on a ferry deck, looking out to sea`,
+    caption: 'Studying at RMIT since 2025',
+    meta: 'Backend / Cloud / Applied AI'
+  },
   {
     src: '/nus-delegation.jpg',
     alt: 'Group photo with the Reactor School delegation from NUS Singapore at RMIT Vietnam',
@@ -271,5 +299,17 @@ export const moments = [
     alt: 'Talking with a visiting NUS student over lunch at RMIT Vietnam',
     caption: 'Lunch and conversations with the visiting NUS students',
     meta: 'RMIT Vietnam · Saigon South'
+  },
+  {
+    src: '/club-session.jpg',
+    alt: 'Two students listening during a club workshop session at RMIT Vietnam',
+    caption: 'Club workshop session',
+    meta: 'RMIT Vietnam'
+  },
+  {
+    src: '/nct-workshop.jpg',
+    alt: 'A speaker presenting a case study slide at a Neo Culture Tech workshop',
+    caption: 'Case study session at a Neo Culture Tech workshop',
+    meta: 'RMIT Neo Culture Tech Club'
   }
 ];
