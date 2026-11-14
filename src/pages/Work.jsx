@@ -1,25 +1,18 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { useGSAP } from '@gsap/react';
 import Roll from '../components/Roll.jsx';
+import WorkSlider from '../components/WorkSlider.jsx';
 import { projects } from '../data/profile.js';
 import { sound } from '../lib/sound.js';
 
 const pad = n => String(n).padStart(2, '0');
-const GAP = 1.06; // khoảng cách tâm các thẻ, tính theo bề rộng thẻ
-// Ảnh chụp thật của dự án (public/projects/*.jpg). Tạm tắt; đổi thành true để hiện lại
-// ảnh bìa thẻ và ảnh trong trang chi tiết.
-const SHOW_SHOTS = false;
 
 export default function Work() {
   const ref = useRef(null);
   const [index, setIndex] = useState(0);
   const [open, setOpen] = useState(null);
-  const drag = useRef(null);
-  const wheel = useRef({ acc: 0, last: 0 });
-
-  const step = useCallback(dir => setIndex(i => gsap.utils.clamp(0, projects.length - 1, i + dir)), []);
 
   const firstStep = useRef(true);
   useEffect(() => {
@@ -29,18 +22,6 @@ export default function Work() {
 
   useGSAP(
     () => {
-      gsap.utils.toArray('.card').forEach((card, i) => {
-        const o = i - index;
-        const a = Math.min(Math.abs(o), 2);
-        gsap.to(card, {
-          xPercent: -50 + o * GAP * 100,
-          scale: 1 - a * 0.04,
-          filter: `blur(${a * 9}px) brightness(${1 - a * 0.35})`,
-          duration: 1,
-          ease: 'expo.out',
-          overwrite: true
-        });
-      });
       gsap.fromTo('.work-label .nav-line', { yPercent: 100 }, { yPercent: 0, duration: 0.6, ease: 'expo.out', overwrite: true });
     },
     { scope: ref, dependencies: [index] }
@@ -48,50 +29,19 @@ export default function Work() {
 
   useGSAP(
     () => {
-      gsap.from('.card', { yPercent: 12, opacity: 0, duration: 1.4, ease: 'expo.out', stagger: 0.05 });
       gsap.fromTo('.corner:not(.work-label) .nav-line', { yPercent: 100 }, { yPercent: 0, duration: 0.9, stagger: 0.06, ease: 'expo.out', delay: 0.2 });
     },
     { scope: ref }
   );
 
-  useEffect(() => {
-    if (open !== null) return undefined;
-    // Cộng dồn lực cuộn: cuộn nhanh thì nhảy nhiều thẻ, không khoá chờ.
-    const onWheel = e => {
-      const w = wheel.current;
-      const now = performance.now();
-      if (now - w.last > 220) w.acc = 0;
-      w.last = now;
-      w.acc += Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      while (Math.abs(w.acc) >= 90) {
-        const dir = Math.sign(w.acc);
-        step(dir);
-        w.acc -= dir * 90;
-      }
-    };
-    const onKey = e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') step(1);
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') step(-1);
-      if (e.key === 'Enter') setOpen(index);
-    };
-    window.addEventListener('wheel', onWheel, { passive: true });
-    window.addEventListener('keydown', onKey);
-    return () => {
-      window.removeEventListener('wheel', onWheel);
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [step, open, index]);
-
-  const onDown = e => (drag.current = { x: e.clientX });
-  const onUp = (e, i) => {
-    const d = drag.current;
-    drag.current = null;
-    if (!d) return;
-    const dx = e.clientX - d.x;
-    if (Math.abs(dx) > 40) return step(dx < 0 ? 1 : -1);
-    if (i === index) setOpen(i);
-    else setIndex(i);
-  };
+  // Mở/đóng dự án: chữ footer cuộn lên cùng nhịp với dải ảnh nở ra, và ngược lại.
+  const onExpand = dir =>
+    gsap.to(ref.current.querySelectorAll('.work-corners .nav-line'), {
+      yPercent: dir > 0 ? -105 : 0,
+      duration: 1.2,
+      ease: 'power4.inOut',
+      overwrite: true
+    });
 
   const p = projects[index];
 
@@ -99,22 +49,9 @@ export default function Work() {
     <section className="work" ref={ref}>
       <h1 className="sr-only">Work</h1>
 
-      <div className="stage">
-        {projects.map((proj, i) => (
-          <button
-            key={proj.slug}
-            className={`card ${i === index ? 'is-active' : ''}`}
-            onPointerDown={onDown}
-            onPointerUp={e => onUp(e, i)}
-            aria-label={`${proj.title}${i === index ? ', open details' : ''}`}
-            tabIndex={i === index ? 0 : -1}
-          >
-            <Cover project={proj} n={i + 1} />
-          </button>
-        ))}
-      </div>
+      <WorkSlider slides={projects} index={index} onIndexChange={setIndex} onOpen={setOpen} onExpand={onExpand} locked={open !== null} />
 
-      <footer className="corners small">
+      <footer className="corners small work-corners">
         <p className="corner work-label">
           <span className="nav-mask">
             <span className="nav-line" key={p.slug}>
@@ -141,49 +78,6 @@ export default function Work() {
   );
 }
 
-/* Ảnh bìa: ảnh chụp thật của dự án nếu có; nếu không thì bìa dựng bằng code (sơ đồ kiến trúc) */
-function Cover({ project: p, n }) {
-  const shot = SHOW_SHOTS ? p.images?.[0] : null;
-  const tone = 18 + ((n * 37) % 22);
-  return (
-    <div
-      className={`cover ${shot ? 'has-shot' : ''}`}
-      style={
-        shot
-          ? undefined
-          : {
-              background: `radial-gradient(90% 120% at ${30 + ((n * 23) % 40)}% 20%, hsl(0 0% ${tone + 16}%), transparent 60%), radial-gradient(120% 120% at 80% 100%, hsl(0 0% ${tone}%), #050505 70%)`
-            }
-      }
-    >
-      {shot && <img className="cover-shot" src={shot.src} alt="" draggable="false" />}
-      <div className="cover-head small">
-        <span className="cover-path">
-          ~/work/{pad(n)}-<b>{p.slug}</b>
-        </span>
-        <span>{p.year}</span>
-      </div>
-      <p className="cover-title large">{p.title}</p>
-      {shot ? (
-        <span />
-      ) : (
-        <div className="cover-flow small" aria-hidden="true">
-          {(p.arch || p.stack).map((s, j) => (
-            <Fragment key={s}>
-              {j > 0 && <i />}
-              <span>{s}</span>
-            </Fragment>
-          ))}
-        </div>
-      )}
-      <div className="cover-foot small">
-        <span>{p.role}</span>
-        {p.highlight && <span>{p.highlight}</span>}
-      </div>
-    </div>
-  );
-}
-
 function Detail({ project: p, n, onClose }) {
   const ref = useRef(null);
 
@@ -192,7 +86,7 @@ function Detail({ project: p, n, onClose }) {
       const split = SplitText.create(ref.current.querySelector('.detail-summary'), { type: 'lines', mask: 'lines', linesClass: 'ln' });
       gsap
         .timeline()
-        .fromTo(ref.current, { clipPath: 'inset(50% 18% 50% 18% round 12px)' }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 0.9, ease: 'expo.inOut' })
+        .fromTo(ref.current, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: 'power2.out' })
         .from(split.lines, { yPercent: 105, stagger: 0.06, duration: 1, ease: 'expo.out' }, '-=0.35')
         .fromTo(ref.current.querySelectorAll('.row > span'), { yPercent: 105 }, { yPercent: 0, stagger: 0.02, duration: 0.8, ease: 'expo.out' }, '-=0.9')
         .from(ref.current.querySelectorAll('.detail-list li'), { y: 16, opacity: 0, stagger: 0.05, duration: 0.7, ease: 'expo.out' }, '-=0.8');
@@ -202,7 +96,7 @@ function Detail({ project: p, n, onClose }) {
   );
 
   const close = () =>
-    gsap.to(ref.current, { clipPath: 'inset(50% 18% 50% 18% round 12px)', duration: 0.7, ease: 'expo.inOut', onComplete: onClose });
+    gsap.to(ref.current, { opacity: 0, duration: 0.45, ease: 'power2.in', onComplete: onClose });
 
   useEffect(() => {
     const onKey = e => e.key === 'Escape' && close();
@@ -234,17 +128,6 @@ function Detail({ project: p, n, onClose }) {
 
         <div className="detail-main">
           <p className="detail-summary large">{p.summary}</p>
-
-          {SHOW_SHOTS && p.images?.length > 0 && (
-            <section className="detail-shots">
-              {p.images.map(img => (
-                <figure key={img.src}>
-                  <img src={img.src} alt={`${p.title}: ${img.caption}`} loading="lazy" />
-                  <figcaption className="small dim">{img.caption}</figcaption>
-                </figure>
-              ))}
-            </section>
-          )}
 
           <section className="detail-block">
             <p className="small dim">What I did</p>

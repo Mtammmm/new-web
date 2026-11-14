@@ -335,133 +335,26 @@ button:hover .roll-line + .roll-line .roll-char {
 
 /* ============ Work ============ */
 .work {
+  position: relative;
   height: 100svh;
   overflow: hidden;
 }
 
-.stage {
+/* Dải ảnh cong 3D (WorkSlider): canvas phủ kín, nền trong suốt để thấy Silk phía sau */
+.slider {
   position: absolute;
   inset: 0;
 }
 
-.card {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: min(64.6vw, 1100px);
-  aspect-ratio: 1.48;
-  translate: 0 -50%;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  overflow: hidden;
-  touch-action: pan-y;
-  user-select: none;
-  will-change: transform, filter;
-  text-align: left;
-}
-
-.card.is-active {
-  cursor: pointer;
-}
-
-.cover {
+.slider-canvas {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 0.6rem;
-  padding: 0 32px 28px;
-}
-
-.cover.has-shot {
-  background: #0a0a0a;
-}
-
-/* Ảnh thật làm bìa: phủ tối nhẹ trên/dưới để chữ góc vẫn đọc được */
-.cover-shot {
-  position: absolute;
-  inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  pointer-events: none;
-}
-
-.cover.has-shot::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 22%, transparent 70%, rgba(0, 0, 0, 0.7));
-  pointer-events: none;
-}
-
-.cover.has-shot > :not(img) {
-  position: relative;
-  z-index: 1;
-}
-
-.cover.has-shot .cover-title {
-  display: none;
-}
-
-.cover-head,
-.cover-foot {
-  display: flex;
-  justify-content: space-between;
-}
-
-/* Dòng cuối luôn nằm ở đáy thẻ, kể cả khi sơ đồ bị ẩn trên điện thoại */
-.cover-foot {
-  grid-row: 4;
-  align-self: end;
-}
-
-/* Thanh trên cùng của thẻ: đường dẫn dự án như một thư mục */
-.cover-head {
-  margin: 0 -32px 1.2rem;
-  padding: 12px 32px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.25);
-}
-
-.cover-path b {
-  font-weight: 400;
-  color: var(--fg);
-}
-
-.cover-path {
-  color: var(--dim);
-  text-transform: none;
-}
-
-.cover-title {
-  max-width: 18ch;
-}
-
-.cover-flow {
-  align-self: center;
-  justify-self: center;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px 0;
-  max-width: 88%;
-}
-
-.cover-flow span {
-  padding: 0.7em 1em;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
-}
-
-.cover-flow i {
-  width: 28px;
-  height: 1px;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.45), var(--accent));
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Chi tiết dự án */
@@ -494,23 +387,6 @@ button:hover .roll-line + .roll-line .roll-char {
 
 .detail-summary {
   max-width: 30ch;
-}
-
-.detail-shots {
-  display: grid;
-  gap: 28px;
-}
-
-.detail-shots figure {
-  margin: 0;
-  display: grid;
-  gap: 10px;
-}
-
-.detail-shots img {
-  width: 100%;
-  border-radius: 6px;
-  border: 1px solid var(--line);
 }
 
 .detail-block {
@@ -763,15 +639,6 @@ button:hover .roll-line + .roll-line .roll-char {
   }
 
   .corner:nth-child(2) {
-    display: none;
-  }
-
-  .card {
-    width: 84vw;
-    aspect-ratio: 0.8;
-  }
-
-  .cover-flow {
     display: none;
   }
 
