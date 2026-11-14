@@ -59,6 +59,84 @@ export default function About({ onGo }) {
     setActive(i);
   }, []);
 
+  // Ảnh nền đã xoá người (tuỳ chọn). Có file thì ảnh nền và người phóng khác nhau;
+  // không có thì hai ảnh phóng bằng nhau để viền người không lệch khỏi ảnh gốc.
+  const [hasBg, setHasBg] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const probe = new Image();
+    probe.onload = () => alive && probe.naturalWidth > 0 && setHasBg(true);
+    probe.src = '/portrait-bg.jpg';
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Dải chân dung: ghim lại, một timeline theo tiến độ cuộn p (0 → 1) điều khiển mọi lớp.
+  // Khai báo trước useGSAP chính để ScrollTrigger ghim được tạo trước các trigger bên dưới.
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(
+        {
+          // matchMedia chỉ chạy callback khi ít nhất một điều kiện khớp: "all" luôn khớp.
+          all: 'all',
+          mobile: '(max-width: 760px)',
+          reduce: '(prefers-reduced-motion: reduce)'
+        },
+        ctx => {
+          const { mobile, reduce: still } = ctx.conditions;
+          const stack = '.band-stack';
+          const metaLines = gsap.utils.toArray('.band-meta .row > span');
+
+          if (still) {
+            // Không ghim; chữ đứng yên ở vị trí giữa, chữ bìa hiện sẵn.
+            gsap.set(stack, { filter: 'none', '--bright': 0.62 });
+            gsap.set('.band-track-1, .band-track-2', { xPercent: -17.5 });
+            gsap.set(metaLines, { yPercent: 0 });
+            return undefined;
+          }
+
+          // Lần đầu vào khung nhìn: chữ đỏ trồi lên từ mặt nạ.
+          gsap.fromTo(
+            '.band-rise',
+            { yPercent: 105 },
+            { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: '.band', start: 'top 60%' } }
+          );
+
+          const tl = gsap.timeline({
+            defaults: { ease: 'none' },
+            scrollTrigger: {
+              trigger: '.band',
+              start: 'top top',
+              end: mobile ? '+=100%' : '+=150%',
+              pin: true,
+              scrub: 0.8,
+              refreshPriority: 1
+            }
+          });
+          // p 0 → 0.2: nét dần và sáng lên.
+          tl.fromTo(stack, { filter: 'blur(24px)', '--bright': 0.45 }, { filter: 'blur(0px)', '--bright': 0.62, duration: 0.2 }, 0);
+          // Toàn đoạn: nền lùi nhẹ; người tiến ra trước (chỉ khi có ảnh nền không người).
+          tl.fromTo('.band-bg', { scale: 1.04 }, { scale: 1, duration: 1 }, 0);
+          if (hasBg) tl.fromTo('.band-person', { scale: 1 }, { scale: 1.08, duration: 1 }, 0);
+          else tl.fromTo('.band-person', { scale: 1.04 }, { scale: 1, duration: 1 }, 0);
+          // Hai dòng chữ trượt ngược chiều, cả khối trôi dọc nhẹ.
+          tl.fromTo('.band-track-1', { xPercent: 0 }, { xPercent: -35, duration: 1 }, 0);
+          tl.fromTo('.band-track-2', { xPercent: -35 }, { xPercent: 0, duration: 1 }, 0);
+          tl.fromTo('.band-major', { yPercent: -6 }, { yPercent: 6, duration: 1 }, 0);
+          // p 0.65 → 0.85: chữ kiểu bìa tạp chí trồi lên, lệch nhau 0.04.
+          tl.fromTo(metaLines, { yPercent: 105 }, { yPercent: 0, duration: 0.2 - 0.04 * (metaLines.length - 1), stagger: 0.04, ease: 'power3.out' }, 0.65);
+
+          return undefined;
+        }
+      );
+      ScrollTrigger.refresh();
+      return () => mm.revert();
+    },
+    { scope: ref, dependencies: [hasBg], revertOnUpdate: true }
+  );
+
   useGSAP(
     () => {
       // Màn đầu: từng dòng trồi lên từ mặt nạ, lan từ giữa ra hai đầu.
@@ -74,33 +152,6 @@ export default function About({ onGo }) {
         ease: 'none',
         scrollTrigger: { trigger: '.about-intro', start: 'top top', end: 'bottom top', scrub: true }
       });
-
-      // Dải chân dung: cả khung ba lớp (ảnh, chữ đỏ, người tách nền) mờ nhoè khi vừa vào,
-      // nét dần khi cuộn tới giữa, kèm phóng nhẹ; áp lên khung để ba lớp luôn cùng nhịp.
-      gsap.fromTo(
-        '.band-stack',
-        { scale: 1.18, filter: 'blur(30px)' },
-        {
-          scale: 1,
-          filter: 'blur(0px)',
-          ease: 'none',
-          scrollTrigger: { trigger: '.band', start: 'top bottom', end: 'center center', scrub: true }
-        }
-      );
-
-      // Chữ đỏ: từng dòng trồi lên khi dải ảnh tới 60% khung nhìn; parallax nhẹ, chậm hơn ảnh.
-      if (!reduce.current) {
-        gsap.fromTo(
-          '.band-line > span',
-          { yPercent: 105 },
-          { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: '.band', start: 'top 60%' } }
-        );
-        gsap.fromTo(
-          '.band-major',
-          { yPercent: -10 },
-          { yPercent: 10, ease: 'none', scrollTrigger: { trigger: '.band', start: 'top bottom', end: 'bottom top', scrub: true } }
-        );
-      }
 
       // Cột nội dung: từng mục trồi lên từ mặt nạ khi vào khung nhìn.
       gsap.utils.toArray('.about-section, .about-end').forEach(sec =>
@@ -234,23 +285,48 @@ export default function About({ onGo }) {
 
       <div className={`band ${cutout === 'ok' ? 'has-cutout' : ''}`}>
         <div className="band-stack">
-          <img className="band-photo" src="/portrait.jpg" alt={`Portrait of ${profile.name}`} />
-          <h2 className="band-major" aria-label={major.join(' ')}>
-            {major.map(w => (
-              <span className="band-line" key={w} aria-hidden="true">
-                <span>{w}</span>
-              </span>
-            ))}
-          </h2>
-          <img
-            ref={cutoutImg}
-            className="band-photo band-cutout"
-            src="/portrait-cutout.png"
-            alt=""
-            aria-hidden="true"
-            onLoad={() => setCutout('ok')}
-            onError={() => setCutout('error')}
-          />
+          <div className="band-layer band-l-bg">
+            <img className="band-photo band-bg" src={hasBg ? '/portrait-bg.jpg' : '/portrait.jpg'} alt={`Portrait of ${profile.name}`} />
+          </div>
+          <div className="band-layer band-l-major">
+            <h2 className="band-major" aria-label={major.join(' ')}>
+              {major.map((w, i) => (
+                <span className="band-line" key={w} aria-hidden="true">
+                  <span className="band-rise">
+                    <span className={`band-track band-track-${i + 1}`}>{`${w} — `.repeat(3)}</span>
+                  </span>
+                </span>
+              ))}
+            </h2>
+          </div>
+          <div className="band-layer band-l-cut">
+            <div className="band-person">
+              <img
+                ref={cutoutImg}
+                className="band-photo band-cutout"
+                src="/portrait-cutout.png"
+                alt=""
+                aria-hidden="true"
+                onLoad={() => setCutout('ok')}
+                onError={() => setCutout('error')}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Chữ kiểu bìa tạp chí ở các góc dưới. */}
+        <div className="band-meta small">
+          <p className="band-meta-left">
+            <Row>{profile.name}</Row>
+            <Row dim>{profile.title}</Row>
+          </p>
+          <p className="band-meta-center">
+            <Row>Minor · {education[0].minor}</Row>
+          </p>
+          <p className="band-meta-right">
+            <Row>{education[0].school}</Row>
+            <Row dim>{education[0].year}</Row>
+          </p>
         </div>
       </div>
 

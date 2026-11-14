@@ -272,7 +272,10 @@ export const education = [
   {
     title: 'Bachelor of Information Technology, RMIT University Vietnam',
     detail: 'Minor in Cloud Computing · GPA 3.0',
-    year: '2025 — 2028'
+    year: '2025 — 2028',
+    // Dùng cho chữ kiểu bìa tạp chí trên dải chân dung (About).
+    school: 'RMIT University Vietnam',
+    minor: 'Cloud Computing'
   },
   {
     title: 'NAWA scholarship exchange, University of Wrocław, Poland',
