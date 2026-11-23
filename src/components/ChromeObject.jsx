@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { gsap } from 'gsap';
+import { createBloom } from '../lib/bloom.js';
 
 // Khối chrome có gai: hình cầu bị đẩy phồng theo một tập hướng ngẫu nhiên (cố định),
 // tạo các gai nhọn dài ngắn khác nhau. Vật liệu kim loại phản chiếu môi trường.
@@ -87,7 +88,13 @@ function getEngine() {
   renderer.compile(scene, camera);
   renderer.render(scene, camera);
 
-  engine = { renderer, scene, camera, mesh, pivot, owner: null };
+  // Bloom: chỉ các chỗ chói trên gai chrome (vượt 1.0) mới phát sáng.
+  const post = createBloom(renderer, scene, camera, { intensity: 0.6, threshold: 1.1, smoothing: 0.3, radius: 0.55 });
+  // Vẽ thử qua hậu kỳ luôn để shader bloom cũng được biên dịch sẵn.
+  post.setSize(64, 64);
+  post.render(0);
+
+  engine = { renderer, scene, camera, mesh, pivot, post, owner: null };
   return engine;
 }
 
@@ -106,7 +113,7 @@ export default function ChromeObject({ className = '' }) {
   useEffect(() => {
     const el = mount.current;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const { renderer, scene, camera, mesh, pivot } = getEngine();
+    const { renderer, scene, camera, mesh, pivot, post } = getEngine();
     const token = {};
     engine.owner = token;
     el.appendChild(renderer.domElement);
@@ -116,6 +123,7 @@ export default function ChromeObject({ className = '' }) {
       const w = el.clientWidth || 1;
       const h = el.clientHeight || 1;
       renderer.setSize(w, h, false);
+      post.setSize(w, h);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       camera.position.z = 12 * (w / h < 1 ? 1.35 : 1);
@@ -178,7 +186,7 @@ export default function ChromeObject({ className = '' }) {
       pivot.rotation.y = tilt.y;
       mesh.rotation.y = Math.sin(t * 0.18) * 0.25 * idle + intro.spin;
       mesh.rotation.z = Math.sin(t * 0.13) * 0.04 * idle;
-      renderer.render(scene, camera);
+      post.render(dt);
     };
     tick();
 

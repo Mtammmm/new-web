@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { gsap } from 'gsap';
+import { createBloom } from '../lib/bloom.js';
 
 // Cột đèn chrome + tấm bảng + hộp đèn tín hiệu, dựng bằng Three.js cho trang Index.
 // Mặt bảng là CanvasTexture: PORTFOLIO, tên và các trang; mỗi dòng trang bấm được,
@@ -9,6 +10,8 @@ import { gsap } from 'gsap';
 
 // Hằng màu riêng của trang Index (giữ nguyên, không theo bảng màu chung).
 const PINK = '#ea6fbe';
+// Màn hình đèn sáng vượt 1.0 (HDR) để chỉ chúng (và chỗ chói trên chrome) phát sáng qua bloom.
+const LAMP_HDR = 2.4;
 const FACE_W = 1024;
 const FACE_H = 1436;
 const BOARD = { w: 3.0, h: 4.2, d: 0.14, r: 0.24, x: -1.95, y: 0.35 };
@@ -223,6 +226,7 @@ class SignEngine {
     this.camera = new THREE.PerspectiveCamera(30, 1, 0.1, 200);
     this.disposables = [];
     this.build();
+    this.post = createBloom(r, this.scene, this.camera, { intensity: 1.1, threshold: 1, smoothing: 0.25, radius: 0.75 });
 
     this.ray = new THREE.Raycaster();
     this.onMove = this.onMove.bind(this);
@@ -330,6 +334,8 @@ class SignEngine {
       this.mat(new THREE.MeshBasicMaterial({ map: this.faceTex, toneMapped: false })),
       board
     );
+    // Bù cho tone mapping Neutral của hậu kỳ để mặt bảng vẫn trắng như bản in (vẫn dưới ngưỡng bloom).
+    this.face.material.color.setScalar(1.05);
     this.face.position.z = BOARD.d / 2 + 0.012;
     // Mặt sau bảng tối.
     const back = this.mesh(roundedPlane(faceW, faceH, BOARD.r - 0.1), dark, board);
@@ -391,7 +397,8 @@ class SignEngine {
       tex.colorSpace = THREE.SRGBColorSpace;
       this.disposables.push(tex);
       (this.lamps ||= []).push({ canvas: c, tex });
-      const m = this.mat(new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, color: 0xffffff }));
+      const m = this.mat(new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+      m.color.setScalar(LAMP_HDR);
       const screen = this.mesh(roundedPlane(1.02, 1.02, 0.08), m, sig);
       screen.position.set(0, y, 0.372);
       // Mái che nửa ống phía trên màn hình.
@@ -475,6 +482,7 @@ class SignEngine {
     const h = this.el.clientHeight;
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
+    this.post?.setSize(w, h);
     const aspect = w / h;
     this.camera.aspect = aspect;
     // Khoảng cách camera đủ để cả cụm (rộng ~6 đơn vị, cao ~6) nằm gọn trong khung.
@@ -578,9 +586,9 @@ class SignEngine {
     }
     if (this.lampMats?.[1] && !this.reduce) {
       const p = 0.75 + 0.25 * Math.sin(now / 260);
-      this.lampMats[1].color.setScalar(p);
+      this.lampMats[1].color.setScalar(p * LAMP_HDR);
     }
-    this.renderer.render(this.scene, this.camera);
+    this.post.render(dt);
   }
 
   destroy() {
@@ -596,6 +604,7 @@ class SignEngine {
     document.documentElement.removeEventListener('mouseleave', this.onLeave);
     this.canvas.removeEventListener('click', this.onClick);
     this.disposables.forEach(d => d.dispose?.());
+    this.post.dispose();
     this.envTex.dispose();
     this.renderer.dispose();
     this.canvas.remove();
