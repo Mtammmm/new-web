@@ -366,6 +366,7 @@ const Silk = ({
   scale = 1,
   color = '#7B7481',
   sheenColor = '#ffffff',
+  colorDuration = 0,
   noiseIntensity = 1.5,
   rotation = 0,
   sheen = 0.5,
@@ -414,6 +415,7 @@ const Silk = ({
     scale,
     color: String(color),
     sheenColor: String(sheenColor),
+    colorDuration: Math.max(0, colorDuration),
     noiseIntensity: Math.max(0, noiseIntensity),
     rotation,
     sheen: Math.max(0, sheen),
@@ -564,6 +566,20 @@ const Silk = ({
       colorCache.set(value, rgb);
       return rgb;
     };
+
+    // Đổi color / sheenColor: nội suy RGB trong colorDuration giây, không tạo lại context.
+    const blends = {};
+    const blendTo = (slot, target, now, duration) => {
+      let b = blends[slot];
+      if (!b) b = blends[slot] = { from: target, to: target, start: now, cur: target.slice() };
+      if (b.to !== target) Object.assign(b, { from: b.cur.slice(), to: target, start: now });
+      const t = duration > 0 ? clamp((now - b.start) / (duration * 1000), 0, 1) : 1;
+      const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      b.cur = b.from.map((v, i) => v + (b.to[i] - v) * e);
+      b.done = t >= 1;
+      return b.cur;
+    };
+    const blending = () => Object.values(blends).some(b => !b.done);
 
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     const view = { width: 1, height: 1, ratio: 1 };
@@ -722,8 +738,10 @@ const Silk = ({
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.useProgram(compositeProgram.program);
       setShared(c, canvas.width, canvas.height, s, unfold);
-      gl.uniform3fv(c.uColor, toRgb(s.color));
-      gl.uniform3fv(c.uSheenColor, toRgb(s.sheenColor));
+      const tNow = performance.now();
+      const dur = reduce ? 0 : s.colorDuration;
+      gl.uniform3fv(c.uColor, blendTo('color', toRgb(s.color), tNow, dur));
+      gl.uniform3fv(c.uSheenColor, blendTo('sheen', toRgb(s.sheenColor), tNow, dur));
       gl.uniform1f(c.uNoiseIntensity, s.noiseIntensity);
       gl.uniform1f(c.uDepth, s.depth);
       gl.uniform1f(c.uSheen, s.sheen);
@@ -808,6 +826,7 @@ const Silk = ({
 
       const settling =
         state.intro < 1 ||
+        blending() ||
         waves.length > 0 ||
         Math.abs((engaged ? 1 : 0) - state.touch) > 0.002 ||
         Math.abs(state.dragX) + Math.abs(state.dragY) > 0.0002 ||

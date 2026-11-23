@@ -15,16 +15,18 @@ import Work from './pages/Work.jsx';
 import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 import { profile } from './data/profile.js';
+import { MENU } from './data/pages.js';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
 const PAGES = { index: Index, work: Work, about: About, contact: Contact };
-const MENU = [
-  ['index', 'Index'],
-  ['work', 'Work'],
-  ['about', 'About'],
-  ['contact', 'Contact']
-];
+
+// Màu nền lụa theo trang, khớp token --pink-hot / --plum trong portfolio.css.
+const SILK = {
+  index: { color: '#b4338f', sheen: '#ffd2f0' },
+  dark: { color: '#2a1724', sheen: '#f3a6d2' }
+};
+
 
 const fromHash = () => {
   const key = window.location.hash.replace('#/', '');
@@ -35,6 +37,8 @@ export default function App() {
   const lenis = useLenis();
   const [page, setPage] = useState(fromHash);
   const [shown, setShown] = useState(page);
+  // Trang quyết định màu nền lụa; đổi lúc màn chuyển trang che kín để không lộ cú đổi màu.
+  const [bgPage, setBgPage] = useState(page);
   const [loaded, setLoaded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const curtain = useRef(null);
@@ -80,12 +84,16 @@ export default function App() {
   useEffect(() => {
     if (page === shown) return;
     sound.whoosh();
-    curtain.current.transition(() => {
-      sound.reveal();
-      lenis?.scrollTo(0, { immediate: true });
-      window.scrollTo(0, 0);
-      setShown(page);
-    });
+    curtain.current.transition(
+      () => {
+        sound.reveal();
+        lenis?.scrollTo(0, { immediate: true });
+        window.scrollTo(0, 0);
+        setShown(page);
+      },
+      () => setBgPage(page),
+      shown
+    );
   }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Khoá cuộn: index/work luôn khoá; about/contact cuộn được, trừ khi menu đang mở.
@@ -93,6 +101,7 @@ export default function App() {
     const scrolls = shown === 'about' || shown === 'contact';
     const lock = !scrolls || menuOpen;
     document.documentElement.classList.toggle('lock', lock);
+    document.documentElement.dataset.page = shown;
     if (lock) lenis?.stop();
     else lenis?.start();
   }, [shown, page, lenis, menuOpen]);
@@ -103,9 +112,11 @@ export default function App() {
     <>
       <SmoothScroll />
       <div className="bg" aria-hidden="true">
+        {/* Index: hồng rực (--pink-hot); các trang khác: mận tối (--plum). Màu nội suy 0.9s khi đổi. */}
         <Silk
-          color="#2a2a2a"
-          sheenColor="#bdbdbd"
+          color={bgPage === 'index' ? SILK.index.color : SILK.dark.color}
+          sheenColor={bgPage === 'index' ? SILK.index.sheen : SILK.dark.sheen}
+          colorDuration={0.9}
           speed={3}
           scale={0.7}
           wave={0.6}

@@ -3,7 +3,19 @@
   --fg: #fff;
   --dim: rgba(255, 255, 255, 0.5);
   --line: rgba(255, 255, 255, 0.14);
-  --accent: #7dffb0;
+  /* Bảng màu hồng chung, xoay quanh nền trang Index */
+  --pink-hot: #b4338f; /* màu lụa chủ đạo của Index (Silk color trong App.jsx) */
+  --pink: #ea6fbe; /* màu hồng tấm bảng */
+  --pink-ink: #c2357f; /* chữ hồng nhỏ trên nền trắng */
+  --plum: #2a1724; /* màu lụa các trang tối */
+  --ink: #1a0a14; /* chữ đen trên nền hồng */
+  /* Chất liệu khối chuyển trang (BlobCurtain) */
+  --curtain-hi: #ffb3dd; /* điểm sáng */
+  --curtain-mid: #ff4fae; /* hồng rực, màu chính */
+  --curtain-low: #c42a8f;
+  --curtain-deep: #5c1248; /* vùng tối */
+  --curtain-lead: #ffc2e3; /* lớp chạy trước */
+  --accent: var(--pink);
   --edge: 48px;
   --font: 'Be Vietnam Pro', 'Helvetica Neue', Arial, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
@@ -71,12 +83,12 @@ img {
 }
 
 ::selection {
-  background: var(--accent);
-  color: #000;
+  background: var(--pink);
+  color: var(--ink);
 }
 
 :focus-visible {
-  outline: 1px solid #fff;
+  outline: 1px solid var(--pink);
   outline-offset: 4px;
 }
 
@@ -275,7 +287,7 @@ button:hover .roll-line + .roll-line .roll-char {
 }
 
 .menu-toggle.is-open .mt-bracket {
-  color: var(--accent);
+  color: var(--pink);
 }
 
 /* Mặt nạ cao 1 dòng chứa hai dòng xếp chồng: MENU và CLOSE */
@@ -344,7 +356,7 @@ button:hover .roll-line + .roll-line .roll-char {
   font-family: var(--mono);
   font-size: var(--small);
   line-height: 1;
-  color: #00a85a;
+  color: var(--ink);
   pointer-events: none;
   animation: caret-blink 1.1s steps(1) infinite;
 }
@@ -391,7 +403,7 @@ button:hover .roll-line + .roll-line .roll-char {
   font-family: var(--mono);
   font-size: var(--small);
   letter-spacing: 0.02em;
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .menu-name {
@@ -405,7 +417,7 @@ button:hover .roll-line + .roll-line .roll-char {
 .menu-rule {
   margin: 14px 0;
   border: 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: 1px solid rgba(0, 0, 0, 0.18);
 }
 
 .menu-foot {
@@ -420,7 +432,7 @@ button:hover .roll-line + .roll-line .roll-char {
 }
 
 .menu-foot a:last-child {
-  color: rgba(0, 0, 0, 0.55);
+  color: rgba(0, 0, 0, 0.6);
 }
 
 /* ============ Page + curtain ============ */
@@ -462,13 +474,44 @@ button:hover .roll-line + .roll-line .roll-char {
 
 /* ============ Index ============ */
 .index {
+  position: relative;
   height: 100svh;
+  overflow: hidden;
 }
 
-.mark {
+/* Nền lụa trên Index: lớp phủ nhẹ hơn để giữ màu hồng tím */
+html[data-page='index'] .bg::after {
+  /* screen: vùng tối của lụa thành hồng tím đậm, vệt sáng thành hồng nhạt; lụa và fluid vẫn chạy bên dưới */
+  background: linear-gradient(115deg, #6e0f58 0%, #9b2380 40%, #b8449d 70%, #c96cb5 100%);
+  mix-blend-mode: screen;
+}
+
+/* Trang Index không có nút menu: tấm bảng đóng vai trò menu */
+html[data-page='index'] .nav-left {
+  display: none;
+}
+
+/* Index: tên sát mép trái, Resume sát mép phải */
+html[data-page='index'] .nav > .nav-center {
+  grid-column: 1;
+  justify-self: start;
+  display: block;
+}
+
+html[data-page='index'] .nav > .nav-right {
+  grid-column: 3;
+}
+
+/* Cảnh 3D: cột chrome, tấm bảng, hộp đèn (StreetSign.jsx) */
+.sign-3d {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+}
+
+.sign-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .chrome {
@@ -494,6 +537,14 @@ button:hover .roll-line + .roll-line .roll-char {
 .slider {
   position: absolute;
   inset: 0;
+}
+
+.work-corners .corner {
+  color: #fff;
+}
+
+.work-now {
+  color: var(--pink);
 }
 
 .slider-canvas {
@@ -662,7 +713,7 @@ button:hover .roll-line + .roll-line .roll-char {
   left: 0;
   right: 0;
   margin: 0;
-  color: #e0261b;
+  color: #e0261b; /* giữ đỏ riêng cho chữ ngành sau lưng */
   font-family: var(--font);
   font-size: 24vw;
   font-weight: 600;
@@ -885,7 +936,7 @@ button:hover .roll-line + .roll-line .roll-char {
   font-family: var(--font);
   font-weight: 500;
   letter-spacing: -0.02em;
-  fill: #fff;
+  fill: var(--pink);
 }
 
 .about-foot {
@@ -1013,6 +1064,10 @@ button:hover .roll-line + .roll-line .roll-char {
 
   .nav > .nav-center {
     display: none;
+  }
+
+  html[data-page='index'] .nav > .nav-right {
+    grid-column: 2;
   }
 
   .menu-panel {

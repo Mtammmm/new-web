@@ -9,7 +9,8 @@ import { gsap } from 'gsap';
 const FOV = 45;
 const CAM_Z = 5;
 const MAX_TEX = 1600;
-const ACCENT = '#7dffb0';
+// Màu lấy từ token chung trong portfolio.css (:root).
+const token = (name, fallback) => (typeof document === 'undefined' ? '' : getComputedStyle(document.documentElement).getPropertyValue(name).trim()) || fallback;
 const FONT = '"Google Sans Flex", "Be Vietnam Pro", system-ui, sans-serif';
 const FLUID_STEP = 1 / 60;
 
@@ -138,11 +139,10 @@ const fragmentShader = /* glsl */ `
       float m = clamp(0.5 - rrect(uv) / aaW, 0.0, 1.0);
       uv += warp;
       if (n > 1) uv.x -= streak * fi / (fn - 1.0);
-      vec3 c = vec3(
-        textureLod(uTex, coverUv(uv + ca), lod).r,
-        textureLod(uTex, coverUv(uv), lod).g,
-        textureLod(uTex, coverUv(uv - ca), lod).b
-      );
+      // Tách R / B; G lấy min của hai mẫu để viền tách màu chỉ ra đỏ / tím, không ra xanh lá.
+      vec3 cA = textureLod(uTex, coverUv(uv + ca), lod).rgb;
+      vec3 cB = textureLod(uTex, coverUv(uv - ca), lod).rgb;
+      vec3 c = vec3(cA.r, min(cA.g, cB.g), cB.b);
       acc += vec4(c * m, m);
     }
     float alpha = acc.a / float(n);
@@ -400,17 +400,18 @@ function waitFonts() {
   return fontsReady;
 }
 
-// Màu trầm riêng của từng dự án, suy ra từ slug.
+// Màu trầm riêng của từng dự án, suy ra từ slug; sắc độ giới hạn trong dải hồng / mận (300–350°).
 function slugColors(slug) {
-  let h = 0;
-  for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  let n = 0;
+  for (const ch of slug) n = (n * 31 + ch.charCodeAt(0)) % 360;
+  const h = 300 + (n % 40);
   const col = hue => {
     const c = new THREE.Color().setHSL(hue / 360, 0.28, 0.55, THREE.SRGBColorSpace);
     const out = {};
     c.getRGB(out, THREE.SRGBColorSpace);
     return [out.r * 255, out.g * 255, out.b * 255];
   };
-  return [col(h), col((h + 40) % 360)];
+  return [col(h), col(h + 12)];
 }
 
 const rgb = (c, k = 1, a = 1) => `rgba(${c.map(v => Math.round(v * k)).join(', ')}, ${a})`;
@@ -479,7 +480,7 @@ function drawCover(p, w, h, colors) {
       if (i > 0) {
         const grad = g.createLinearGradient(x, 0, x + link, 0);
         grad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-        grad.addColorStop(1, ACCENT);
+        grad.addColorStop(1, token('--pink', '#ea6fbe'));
         g.fillStyle = grad;
         g.fillRect(x, y + boxH / 2 - u / 2, link, Math.max(1, u * 1.5));
         x += link;
@@ -564,8 +565,8 @@ export class WorkSliderEngine {
       uR: { value: 1 },
       uExpand: { value: 0 },
       uLight: { value: new THREE.Vector3(-0.35, 0.45, 1).normalize() },
-      uFog: { value: new THREE.Color('#0b0b0b') },
-      uBase: { value: new THREE.Color('#151515') }
+      uFog: { value: new THREE.Color(token('--plum', '#2a1724')) },
+      uBase: { value: new THREE.Color(token('--plum', '#2a1724')).offsetHSL(0, 0, 0.04) }
     };
 
     this.meshes = slides.map(() => {

@@ -67,7 +67,7 @@ export default function Work() {
         <p className="corner">
           <span className="nav-mask">
             <span className="nav-line">
-              [ {pad(index + 1)} / {pad(projects.length)} ]
+              [ <span className="work-now">{pad(index + 1)}</span> / {pad(projects.length)} ]
             </span>
           </span>
         </p>
